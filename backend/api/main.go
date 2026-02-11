@@ -12,7 +12,7 @@ import (
 func main() {
 	r := routes.CarregaRotas()
 
-	go controller.StartJobWorker()
+	go controller.StartPriorityWorker()
 
 	// Configuração de CORS
 	origins := handlers.AllowedOrigins([]string{"http://localhost:5173"})

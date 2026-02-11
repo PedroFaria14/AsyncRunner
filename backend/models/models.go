@@ -1,8 +1,18 @@
 package models
 
 import (
-	"sync"
 	"time"
+
+	"github.com/google/uuid"
+)
+
+type JobStatus string
+
+const (
+	StatusPending    JobStatus = "pending"
+	StatusProcessing JobStatus = "processing"
+	StatusCompleted  JobStatus = "completed"
+	StatusFailed     JobStatus = "failed"
 )
 
 type Event struct {
@@ -11,6 +21,7 @@ type Event struct {
 	EventDate time.Time `json:"timestamp"`
 	EventType string    `json:"event_type"`
 	JobID     string    `json:"job_id"`
+	Priority  int       `json:"priority"`
 }
 
 type WebhookRegistration struct {
@@ -19,12 +30,24 @@ type WebhookRegistration struct {
 }
 
 type Job struct {
-	ID        string    `json:"id"`
-	Status    string    `json:"status"`
-	CreatedAt time.Time `json:"created_at"`
+	ID          uuid.UUID  `json:"id"`
+	Name        string     `json:"name"`
+	JobStatus   JobStatus  `json:"status"`
+	Priority    int        `json:"priority"`
+	CreatedAt   time.Time  `json:"created_at"`
+	Attempts    int        `json:"attempts"`
+	MaxAttempts int        `json:"max_attempts"`
+	ScheduledAt *time.Time `json:"scheduled_at,omitempty"`
 }
 
-var (
-	GlobalJobs []Job
-	JobMutex   sync.Mutex
-)
+func NewJob(name string, priority int) *Job {
+	return &Job{
+		ID:          uuid.New(),
+		Name:        name,
+		JobStatus:   StatusPending,
+		Priority:    priority,
+		Attempts:    0,
+		MaxAttempts: 3,
+		CreatedAt:   time.Now(),
+	}
+}

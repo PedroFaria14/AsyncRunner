@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -18,26 +17,21 @@ var jobs = make(map[string]*queues.Job)
 
 func HandleJobs(w http.ResponseWriter, r *http.Request) {
 	var body struct {
-		EventName string `json:"event_name"`
+		Name     string `json:"name"`
+		Priority int    `json:"priority"`
 	}
-	json.NewDecoder(r.Body).Decode(&body)
 
-	novoJob := queues.NewJob(body.EventName)
-	id := novoJob.ID().String()
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		log.Printf("❌ Erro ao decodificar: %v", err)
+		http.Error(w, "JSON inválido", 400)
+		return
+	}
+
+	novoJob := queues.NewJob(body.Name, body.Priority)
 
 	SaveJob(novoJob)
 
-	go func(jobID string) {
-		log.Printf("⏳ Iniciando processamento do Job %s", jobID)
-
-		time.Sleep(10 * time.Second)
-		UpdateJobStatus(jobID, queues.StatusProcessing)
-
-		time.Sleep(10 * time.Second)
-		UpdateJobStatus(jobID, queues.StatusCompleted)
-
-		log.Printf("✅ Job %s finalizado!", jobID)
-	}(id)
+	log.Printf("📥 Job '%s' (Prio: %d) adicionado à fila.", body.Name, body.Priority)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(novoJob)
@@ -46,7 +40,8 @@ func HandleJobs(w http.ResponseWriter, r *http.Request) {
 func SaveJob(job *queues.Job) {
 	mu.Lock()
 	defer mu.Unlock()
-	jobs[job.ID().String()] = job
+
+	jobs[job.ID.String()] = job
 }
 
 func ListJobs() map[string]*queues.Job {

@@ -1,36 +1,30 @@
-
-
 export interface JobModels {
+  id: string; 
   userId: string;
-  status: 'pending' | 'started' | 'completed' | 'failed'; 
-  createdAt: Date;
+  status: 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED'; 
+  priority: 1 | 2 | 3;
+  createdAt: string; 
   name: string;
+    attempts: number;      
+  max_attempts: number;  
+  created_at: string;    
 }
 
 const getStatusColor = (status: JobModels['status']): string => {
-  switch (status) {
-    case 'pending':
-        return 'gray';
-    case 'started':
-        return 'blue';
-    case 'completed':
-        return 'green';
-    case 'failed':
-        return 'red';
-    default:
-        return 'black';
-  }
+  const colors = {
+    'PENDING': 'gray',
+    'RUNNING': 'blue',
+    'COMPLETED': 'green',
+    'FAILED': 'red'
+  };
+  return colors[status] || 'black';
 };
 
-const getFormattedDate = (date: Date): string => {
-    return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-    });
-}
-
-const isProcessing = (status: JobModels['status']): boolean => {
-    return status === 'pending' || status === 'started';
-}
-
+const getPriorityStyles = (priority: JobModels['priority']) => {
+  switch (priority) {
+    case 3: return { label: 'HIGH', color: '#ef4444', icon: '🔴' };   
+    case 2: return { label: 'MEDIUM', color: '#f59e0b', icon: '🟡' };
+    case 1: return { label: 'LOW', color: '#10b981', icon: '🟢' };    
+    default: return { label: 'LOW', color: '#6b7280', icon: '⚪' };
+  }
+};

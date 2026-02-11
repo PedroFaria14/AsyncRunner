@@ -1,42 +1,58 @@
 package controller
 
 import (
-	"asyncflow/models"
+	"asyncflow/queues"
+	"log"
 	"math/rand"
 	"time"
 )
 
-func StartJobWorker() {
+func StartPriorityWorker() {
 	for {
-		models.JobMutex.Lock()
-		var target *models.Job
-		for i := range models.GlobalJobs {
-			if models.GlobalJobs[i].Status == "PENDING" {
-				target = &models.GlobalJobs[i]
-				break
+		mu.Lock()
+		var nextJob *queues.Job
+		highestPrio := -1
+
+		for _, job := range jobs {
+			if job.JobStatus == queues.StatusPending {
+				if job.Priority > highestPrio {
+					highestPrio = job.Priority
+					nextJob = job
+				}
 			}
 		}
-		models.JobMutex.Unlock()
+		mu.Unlock()
 
-		if target != nil {
-			process(target)
+		if nextJob != nil {
+			processar(nextJob)
+		} else {
+			time.Sleep(2 * time.Second)
 		}
-		time.Sleep(1 * time.Second)
 	}
 }
 
-func process(job *models.Job) {
-	models.JobMutex.Lock()
-	job.Status = "RUNNING"
-	models.JobMutex.Unlock()
+func processar(job *queues.Job) {
+	idStr := job.ID.String()
 
-	time.Sleep(time.Duration(rand.Intn(6)+3) * time.Second)
+	UpdateJobStatus(idStr, queues.StatusProcessing)
 
-	models.JobMutex.Lock()
-	if rand.Float32() < 0.2 {
-		job.Status = "FAILED"
-	} else {
-		job.Status = "COMPLETED"
+	mu.Lock()
+	job.Attempts++
+	mu.Unlock()
+
+	log.Printf("🔨 Processando: %s (Tentativa %d/%d)", job.Name, job.Attempts, job.MaxAttempts)
+	time.Sleep(5 * time.Second)
+
+	if rand.Float32() < 0.3 {
+		log.Printf("❌ Falha no Job: %s", job.Name)
+		if job.Attempts < job.MaxAttempts {
+			UpdateJobStatus(idStr, queues.StatusPending)
+		} else {
+			UpdateJobStatus(idStr, queues.StatusFailed)
+		}
+		return
 	}
-	models.JobMutex.Unlock()
+
+	UpdateJobStatus(idStr, queues.StatusCompleted)
+	log.Printf("✅ Sucesso: %s", job.Name)
 }

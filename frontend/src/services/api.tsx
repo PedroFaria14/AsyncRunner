@@ -22,9 +22,16 @@ export const getJobs = async (): Promise<JobModels[]> => {
   }));
 };
 
-export const createJob = async (name: string): Promise<JobModels> => {
-  const response = await apiClient.post('/jobs', { 
-    event_name: name 
-  }); 
-  return response.data;
+export const createJob = async (data: { name: string; priority: number }) => {
+  const response = await fetch('http://localhost:8080/jobs', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Erro ao criar o job');
+  }
+
+  return response.json();
 };

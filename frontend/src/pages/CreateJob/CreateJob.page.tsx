@@ -6,6 +6,8 @@ import { useQueryClient } from '@tanstack/react-query';
 
 export const CreateJob = () => {
   const [name, setName] = useState('');
+  const [priority, setPriority] = useState(1);
+  
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { createJob, isCreating } = useJobs(); 
@@ -14,7 +16,8 @@ export const CreateJob = () => {
     e.preventDefault();
     if (!name.trim()) return;
 
-    createJob(name, { 
+  
+    createJob({ name, priority }, { 
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['jobs'] }); 
         navigate('/');
@@ -29,6 +32,8 @@ export const CreateJob = () => {
     <CreateJobTemplate
       name={name}
       setName={setName}
+      priority={priority}
+      setPriority={setPriority}
       handleSubmit={handleSubmit}
       isCreating={isCreating}
       onCancel={() => navigate('/')}
