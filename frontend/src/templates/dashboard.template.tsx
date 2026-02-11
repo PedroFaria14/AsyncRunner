@@ -83,7 +83,7 @@ export const DashboardTemplate: React.FC<DashboardProps> = ({
         gutterBottom
         sx={{ fontWeight: "bold", color: "#1a237e" }}
       >
-        AsyncFlow Manager 🚀
+        AsyncFlow Manager
       </Typography>
 
       {isError && (
