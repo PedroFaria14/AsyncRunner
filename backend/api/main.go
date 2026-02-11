@@ -1,6 +1,7 @@
 package main
 
 import (
+	"asyncflow/controller"
 	"asyncflow/routes"
 	"log"
 	"net/http"
@@ -11,11 +12,14 @@ import (
 func main() {
 	r := routes.CarregaRotas()
 
+	go controller.StartJobWorker()
+
+	// Configuração de CORS
 	origins := handlers.AllowedOrigins([]string{"http://localhost:5173"})
 	headers := handlers.AllowedHeaders([]string{"Content-Type", "Authorization"})
 	methods := handlers.AllowedMethods([]string{"GET", "POST", "OPTIONS"})
 
-	log.Println("🚀 Backend rodando na 8080")
+	log.Println("🚀 Backend rodando na 8080 com Worker Ativo")
 
-	http.ListenAndServe(":8080", handlers.CORS(origins, headers, methods)(r))
+	log.Fatal(http.ListenAndServe(":8080", handlers.CORS(origins, headers, methods)(r)))
 }

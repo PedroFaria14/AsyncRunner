@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 type Event struct {
 	EventID   string    `json:"event_id"`
@@ -14,3 +17,14 @@ type WebhookRegistration struct {
 	URL   string `json:"url"`
 	Event string `json:"event"`
 }
+
+type Job struct {
+	ID        string    `json:"id"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+var (
+	GlobalJobs []Job
+	JobMutex   sync.Mutex
+)
