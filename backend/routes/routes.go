@@ -9,9 +9,12 @@ import (
 
 func CarregaRotas() *mux.Router {
 	r := mux.NewRouter()
+	r.HandleFunc("/jobs", controller.HandleJobs).Methods("POST", "OPTIONS")
 
-	r.HandleFunc("/jobs", controller.HandleJobs).Methods("POST", "GET")
-	r.HandleFunc("/jobs/{id}", controller.GetJobByID).Methods("GET")
+	r.HandleFunc("/jobs", controller.GetJobsHandler).Methods("GET", "OPTIONS")
+
+	r.HandleFunc("/jobs/{id}", controller.GetJobByID).Methods("GET", "OPTIONS")
+
 	r.HandleFunc("/webhooks", controller.RegisterWebhookHandler).Methods("POST")
 	return r
 

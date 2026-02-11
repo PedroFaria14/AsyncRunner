@@ -16,19 +16,20 @@ const (
 )
 
 type Job struct {
+	Id          uuid.UUID  `json:"id"`
+	Name        string     `json:"name"`
+	JobStatus   JobStatus  `json:"status"`
 	ScheduledAt *time.Time `json:"scheduled_at,omitempty"`
-
-	Id        uuid.UUID `json:"id"`
-	JobStatus JobStatus `json:"status"`
 }
 
 func (j *Job) ID() uuid.UUID {
 	return j.Id
 }
 
-func NewJob() *Job {
+func NewJob(name string) *Job {
 	return &Job{
 		Id:        uuid.New(),
+		Name:      name,
 		JobStatus: StatusPending,
 	}
 }

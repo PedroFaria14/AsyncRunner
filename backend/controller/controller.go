@@ -10,29 +10,33 @@ import (
 	"sync"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
 var mu sync.Mutex
 var jobs = make(map[string]*queues.Job)
-var webhookMap = make(map[string][]string)
 
 func HandleJobs(w http.ResponseWriter, r *http.Request) {
-	novoJob := queues.NewJob()
+	var body struct {
+		EventName string `json:"event_name"`
+	}
+	json.NewDecoder(r.Body).Decode(&body)
+
+	novoJob := queues.NewJob(body.EventName)
 	id := novoJob.ID().String()
 
 	SaveJob(novoJob)
 
 	go func(jobID string) {
-		time.Sleep(10 * time.Second)
+		log.Printf("⏳ Iniciando processamento do Job %s", jobID)
 
+		time.Sleep(10 * time.Second)
 		UpdateJobStatus(jobID, queues.StatusProcessing)
 
 		time.Sleep(10 * time.Second)
-
 		UpdateJobStatus(jobID, queues.StatusCompleted)
 
+		log.Printf("✅ Job %s finalizado!", jobID)
 	}(id)
 
 	w.Header().Set("Content-Type", "application/json")
@@ -72,27 +76,12 @@ func GetJobByID(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UpdateJobStatus(id string, status queues.JobStatus) bool {
+func UpdateJobStatus(id string, status queues.JobStatus) {
 	mu.Lock()
-	job, exists := jobs[id]
-	if !exists {
-		mu.Unlock()
-		return false
+	defer mu.Unlock()
+	if job, ok := jobs[id]; ok {
+		job.JobStatus = status
 	}
-	job.JobStatus = status
-	mu.Unlock()
-
-	evento := models.Event{
-		EventID:   uuid.New().String(),
-		EventName: string(status),
-		EventDate: time.Now(),
-		EventType: "job_status_change",
-		JobID:     id,
-	}
-
-	notifyJobStatusChange(id, evento)
-	return true
-
 }
 
 func DeleteJob(id string) bool {
@@ -104,6 +93,19 @@ func DeleteJob(id string) bool {
 	}
 	delete(jobs, id)
 	return true
+}
+
+func GetJobsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	mu.Lock()
+	lista := make([]*queues.Job, 0)
+	for _, job := range jobs {
+		lista = append(lista, job)
+	}
+	mu.Unlock()
+
+	json.NewEncoder(w).Encode(lista)
 }
 
 func notifyJobStatusChange(jobID string, evento models.Event) {
