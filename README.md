@@ -21,7 +21,8 @@ Na raiz deste repositório:
 docker compose up --build --wait
 ```
 
-- Dashboard: http://localhost:5173
+- Home de apresentação: http://localhost:5173
+- Dashboard: http://localhost:5173/dashboard
 - API: http://localhost:8080
 - Saúde da API: http://localhost:8080/health
 - API pelo proxy do frontend: http://localhost:5173/api/jobs
@@ -34,6 +35,30 @@ docker compose down
 As portas são publicadas somente em `127.0.0.1`. O frontend usa Nginx não-root e
 proxy `/api`, evitando URLs fixas de backend no bundle. Rotas como `/dashboard`
 e `/new` também funcionam ao recarregar a página.
+
+## Home e navegação
+
+- `/`: apresentação do AsyncFlow, fluxo ilustrativo, objetivo de estudo, tecnologias
+  e links para experimentar o dashboard e consultar o código no GitHub.
+- `/dashboard`: resumo da fila, criação de jobs e acompanhamento automático.
+- `/new`: formulário de criação dedicado.
+
+A home é estática e não consulta a API. O polling existe apenas enquanto o
+dashboard está montado. O logo e o item **Início** retornam à apresentação.
+O diagrama da home é ilustrativo; a execução real é demonstrada no dashboard.
+
+### Frontend na Vercel
+
+Configure a Root Directory como `frontend`, framework Vite, Node 24, build
+`npm run build` e saída `dist`. `frontend/vercel.json` configura o fallback da SPA
+para permitir abrir e recarregar as rotas diretamente.
+
+Defina `VITE_API_URL` com a URL HTTPS do backend, **sem `/api` no final**, por exemplo
+`https://seu-backend.onrender.com`. `/api` é somente o proxy do ambiente local;
+no backend as rotas são `/jobs`, `/webhooks` e `/health`.
+A variável é incorporada no build: alterá-la exige novo deploy do frontend.
+Configure `CORS_ORIGIN` no backend com a origem exata publicada na Vercel, sem
+barra final. A configuração local não publica nem modifica os serviços remotos.
 
 ## Desenvolvimento sem Docker
 
@@ -135,6 +160,7 @@ backend/
 frontend/src/
   app/                    # Providers, router e tema MUI
   features/jobs/           # API, tipos, hooks, componentes, páginas e testes
+  features/home/           # Apresentação estática do projeto, sem consultas à API
   shared/api/             # Cliente HTTP e mensagens de erro
   test/                   # Setup compartilhado de testes e MSW
 docs/                     # Contrato e catálogo de erros

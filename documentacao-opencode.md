@@ -2,6 +2,13 @@
 
 ## Arquitetura e fluxo
 
+A rota `/` renderiza `features/home/pages/home.tsx`, uma apresentação estática sem
+hooks de dados nem chamadas à API. A navegação **Início** e o logo apontam para `/`.
+Os CTAs da home abrem `/dashboard`; `/new` continua sendo a criação dedicada.
+O polling de jobs começa ao montar o dashboard e para quando ele é desmontado.
+`frontend/vercel.json` fornece o fallback da SPA na Vercel; o Nginx mantém o
+fallback já existente no Docker.
+
 ```text
 AppProviders → AppRouter → DashboardPage / CreateJob → JobForm
   → useCreateJob → Axios → POST /jobs

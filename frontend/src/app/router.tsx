@@ -1,10 +1,18 @@
-import { BrowserRouter, Link, NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Link, NavLink, Route, Routes } from 'react-router-dom';
 import { AppBar, Box, Button, Container, Toolbar, Typography } from '@mui/material';
 import { DashboardPage } from '../features/jobs/pages/dashboard';
 import { CreateJob } from '../pages/CreateJob/CreateJob.page';
 import QueuePlayNextIcon from '@mui/icons-material/QueuePlayNext';
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import AddIcon from '@mui/icons-material/Add';
+import HomeOutlinedIcon from '@mui/icons-material/HomeOutlined';
+import { HomePage } from '../features/home/pages/home';
+
+const navigationButtonSx = {
+  '&.active': { bgcolor: 'rgba(255,255,255,0.16)' },
+  '& .MuiButton-startIcon': { display: { xs: 'none', sm: 'inline-flex' } },
+  px: { xs: 1.5, sm: 2 },
+};
 
 export function AppRouter() {
   return (
@@ -38,7 +46,7 @@ export function AppRouter() {
         >
           <Typography
             component={Link}
-            to="/dashboard"
+            to="/"
             variant="h6"
             sx={{
               flexGrow: 1,
@@ -52,13 +60,27 @@ export function AppRouter() {
             <QueuePlayNextIcon aria-hidden="true" />
             AsyncFlow
           </Typography>
-          <Box component="nav" aria-label="Navegação principal">
+          <Box
+            component="nav"
+            aria-label="Navegação principal"
+            sx={{ display: 'flex', flexWrap: 'wrap', width: { xs: '100%', sm: 'auto' }, gap: 0.5 }}
+          >
+            <Button
+              component={NavLink}
+              to="/"
+              end
+              color="inherit"
+              startIcon={<HomeOutlinedIcon />}
+              sx={navigationButtonSx}
+            >
+              Início
+            </Button>
             <Button
               component={NavLink}
               to="/dashboard"
               color="inherit"
               startIcon={<DashboardOutlinedIcon />}
-              sx={{ '&.active': { bgcolor: 'rgba(255,255,255,0.16)' }, px: { xs: 1, sm: 2 } }}
+              sx={navigationButtonSx}
             >
               Dashboard
             </Button>
@@ -67,7 +89,7 @@ export function AppRouter() {
               to="/new"
               color="inherit"
               startIcon={<AddIcon />}
-              sx={{ '&.active': { bgcolor: 'rgba(255,255,255,0.16)' }, px: { xs: 1, sm: 2 } }}
+              sx={navigationButtonSx}
             >
               Novo job
             </Button>
@@ -82,7 +104,7 @@ export function AppRouter() {
         sx={{ py: { xs: 3, sm: 5 } }}
       >
         <Routes>
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<HomePage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/new" element={<CreateJob />} />
           <Route

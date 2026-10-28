@@ -3,7 +3,8 @@
 O AsyncFlow demonstra uma fila de jobs com prioridade, API Go e dashboard React.
 
 1. Com Docker ativo: execute `docker compose up --build --wait` na raiz.
-2. Abra http://localhost:5173 e informe nome e prioridade para criar um job.
+2. Abra http://localhost:5173 para conhecer o projeto e clique em **Experimentar o dashboard**.
+   No painel, informe nome e prioridade para criar um job.
 3. Acompanhe a atualização automática até a conclusão.
 4. Para encerrar: `docker compose down`.
 
