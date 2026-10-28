@@ -1,24 +1,32 @@
-version: "3.8"
-
 services:
   backend:
     build: ./backend
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
+    environment:
+      HTTP_ADDR: ":8080"
+      CORS_ORIGIN: "http://localhost:5173"
+    init: true
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 15s
     networks:
       - asyncflow-network
 
   frontend:
     build: ./frontend
     ports:
-      - "5173:80" # Mapeia a porta 80 do container para a 5173 do seu PC
+      - "127.0.0.1:5173:8080"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    init: true
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
     networks:
       - asyncflow-network
-
-      
-
 networks:
   asyncflow-network:
     driver: bridge

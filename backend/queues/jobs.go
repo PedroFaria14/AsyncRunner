@@ -32,7 +32,7 @@ func NewJob(name string, priority int) *Job {
 		Name:        name,
 		JobStatus:   StatusPending,
 		Priority:    priority,
-		CreatedAt:   time.Now(),
+		CreatedAt:   time.Now().UTC(),
 		Attempts:    0,
 		MaxAttempts: 3,
 	}

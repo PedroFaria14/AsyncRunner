@@ -1,21 +1,16 @@
-// routes/routes.go
+// Package routes retains the original router entry point for local consumers.
 package routes
 
 import (
-	"asyncflow/controller"
-
-	"github.com/gorilla/mux"
+	"asyncflow/internal/httpapi"
+	"asyncflow/internal/jobs"
+	"asyncflow/internal/webhooks"
+	"log/slog"
+	"net/http"
 )
 
-func CarregaRotas() *mux.Router {
-	r := mux.NewRouter()
-	r.HandleFunc("/jobs", controller.HandleJobs).Methods("POST", "OPTIONS")
-
-	r.HandleFunc("/jobs", controller.GetJobsHandler).Methods("GET", "OPTIONS")
-
-	r.HandleFunc("/jobs/{id}", controller.GetJobByID).Methods("GET", "OPTIONS")
-
-	r.HandleFunc("/webhooks", controller.RegisterWebhookHandler).Methods("POST")
-	return r
-
+// CarregaRotas returns an isolated router. Use httpapi.New for explicit composition.
+func CarregaRotas() http.Handler {
+	logger := slog.Default()
+	return httpapi.New(jobs.New(), webhooks.New(logger), logger, "http://localhost:5173")
 }

@@ -1,0 +1,158 @@
+openapi: 3.1.0
+info:
+  title: AsyncFlow API
+  version: 1.0.0
+  description: Local educational API with in-memory storage and no authentication.
+security: []
+servers:
+  - url: http://localhost:8080
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Check HTTP process health
+      responses:
+        '200':
+          description: Service available
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: {type: string, const: ok}
+        default:
+          $ref: '#/components/responses/Failure'
+  /jobs:
+    get:
+      operationId: listJobs
+      summary: List jobs by creation date
+      responses:
+        '200':
+          description: Jobs ordered by creation date
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+        default:
+          $ref: '#/components/responses/Failure'
+    post:
+      operationId: createJob
+      summary: Create a priority job
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name, priority]
+              properties:
+                name: {type: string, minLength: 1, maxLength: 200}
+                priority: {type: integer, minimum: 1, maximum: 3}
+      responses:
+        '201':
+          description: Job created
+          headers:
+            Location:
+              schema: {type: string}
+              description: Relative URL of the new job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '400':
+          $ref: '#/components/responses/Invalid'
+        default:
+          $ref: '#/components/responses/Failure'
+  /jobs/{id}:
+    get:
+      operationId: getJob
+      summary: Get a job snapshot
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Job found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+        '404':
+          description: Job not found (JOB_NOT_FOUND)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        default:
+          $ref: '#/components/responses/Failure'
+  /webhooks:
+    post:
+      operationId: registerWebhook
+      summary: Subscribe a public HTTPS URL to a terminal job event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [url, event]
+              properties:
+                url: {type: string, format: uri, description: Public HTTPS destination only}
+                event: {type: string, enum: [job.completed, job.failed]}
+      responses:
+        '201': {description: 'Webhook registered, empty response'}
+        '400':
+          $ref: '#/components/responses/Invalid'
+        default:
+          $ref: '#/components/responses/Failure'
+components:
+  responses:
+    Failure:
+      description: Unexpected failure or unsupported method; see docs/errors.md
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Invalid:
+      description: Invalid input (VALIDATION_ERROR)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Job:
+      type: object
+      required: [id, name, status, priority, created_at, attempts, max_attempts]
+      properties:
+        id: {type: string, format: uuid}
+        name: {type: string}
+        status: {type: string, enum: [pending, processing, completed, failed]}
+        priority: {type: integer, minimum: 1, maximum: 3}
+        created_at: {type: string, format: date-time}
+        attempts: {type: integer, minimum: 0}
+        max_attempts: {type: integer, const: 3}
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: {type: string}
+            message: {type: string}
+            details:
+              type: array
+              items:
+                type: object
+                required: [field, message]
+                properties:
+                  field: {type: string}
+                  message: {type: string}

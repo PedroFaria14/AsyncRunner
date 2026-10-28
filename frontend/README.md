@@ -1,4 +1,23 @@
-# React + TypeScript + Vite
+# Frontend AsyncFlow
+
+Dashboard React + TypeScript, padronizado com MUI Material, React Query e Axios.
+
+```sh
+npm ci
+npm run dev
+npm run lint
+npm test
+npm run build
+```
+
+O Vite encaminha `/api` ao backend na porta 8080. A estrutura ativa fica em
+`src/app`, `src/features/jobs` e `src/shared`. Consulte o [guia completo](../README.md)
+e a [documentação técnica](../documentacao-opencode.md) para testes E2E, configuração
+e limites operacionais.
+
+---
+
+## Referência original do template Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
